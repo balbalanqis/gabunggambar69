@@ -117,10 +117,8 @@ mergeBtn.addEventListener('click', async ()=>{
   const bg = document.getElementById('bg').value || '#ffffff';
   const gridCols = Math.max(1, Number(document.getElementById('gridCols').value) || 3);
 
-  // load images
   const imgs = await Promise.all(files.map(f => loadImg(URL.createObjectURL(f))));
 
-  // simple resize cap to avoid huge canvases
   const maxSide = 1600;
   imgs.forEach(o=>{
     const ratio = Math.max(o.width/maxSide, o.height/maxSide, 1);
@@ -149,7 +147,7 @@ mergeBtn.addEventListener('click', async ()=>{
   if(orient==='horizontal'){
     let x=0; imgs.forEach(im=>{ ctx.drawImage(im.el, x, (H-im.drawH)/2, im.drawW, im.drawH); x += im.drawW + pad; });
   } else if(orient==='vertical'){
-    let y=0; imgs.forEach(im=>{ ctx.drawImage(im.el, (W-im.drawW)/2, y, im.drawW, im.drawH); y += im.drawH + pad; });
+    let y=0; imgs.forEach(im=>{ ctx.drawImage(im.el, (W-im.drawW)/2, y, im.drawH, im.drawH); y += im.drawH + pad; });
   } else {
     const cols = gridCols; let idx=0; let y=0;
     const colW = []; const rowH = [];
@@ -188,5 +186,27 @@ function loadImg(src){
   });
 }
 </script>
+
+<!-- YOUTUBE MINI PLAYER (autoplay + mute, aman & rapi) -->
+<div style="
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  width: 140px;
+  height: 250px;
+  border-radius: 12px;
+  overflow: hidden;
+  background:#000;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+">
+  <iframe
+    src="https://www.youtube.com/embed/dlOYH0MInXw?autoplay=1&mute=1&playsinline=1&loop=1&controls=0&modestbranding=1"
+    style="width:100%;height:100%;border:0;"
+    allow="autoplay;encrypted-media"
+    allowfullscreen>
+  </iframe>
+</div>
+
 </body>
 </html>
