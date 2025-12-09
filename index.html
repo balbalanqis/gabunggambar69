@@ -1,123 +1,192 @@
-<!DOCTYPE html>
+<!--
+Simple Image Merger (Single-file)
+File: index.html
+Deskripsi: Versi minimalis untuk menggabungkan beberapa gambar menjadi 1.
+Cara pakai: Drag & drop atau klik area, atur orientasi & spasi (padding), klik "Gabungkan" lalu "Unduh".
+Lisensi: MIT
+-->
+<!doctype html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gabung Gambar 69</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: #f2f2f2;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .container {
-            background: #fff;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        .preview {
-            max-width: 100%;
-            margin-top: 15px;
-        }
-
-        /* YouTube Box (PC ukuran tetap) */
-        .yt-fixed {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            width: 160px;
-            height: 290px;
-            border-radius: 14px;
-            overflow: hidden;
-            z-index: 9999;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-            background: #000;
-        }
-
-        /* HP ukuran mengecil */
-        @media (max-width: 600px) {
-            .yt-fixed {
-                width: 90px;
-                height: 160px;
-                bottom: 10px;
-                right: 10px;
-            }
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simple Image Merger</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#0b1220;margin:0;padding:24px;display:flex;align-items:center;justify-content:center;height:100vh}
+  .card{width:920px;max-width:96%;background:white;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(10,20,50,0.06)}
+  h2{margin:0 0 8px 0;font-size:18px}
+  .muted{color:#64748b;font-size:13px}
+  .drop{border:2px dashed #dbe6ff;border-radius:8px;padding:28px;text-align:center;cursor:pointer;background:#fbfdff}
+  .drop.drag{background:#eef4ff}
+  .thumbs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:6px}
+  .thumb{width:84px;height:84px;flex:0 0 84px;border-radius:6px;overflow:hidden;border:1px solid #eef4ff;display:flex;align-items:center;justify-content:center}
+  .controls{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  select,input[type=number],input[type=color]{padding:8px;border-radius:6px;border:1px solid #e6eef9}
+  button{padding:10px 12px;border-radius:6px;border:0;background:#2563eb;color:white;cursor:pointer}
+  button.ghost{background:transparent;color:#334155;border:1px solid #e6eef9}
+  #result{margin-top:14px;border:1px dashed #e6eef9;border-radius:8px;padding:10px;min-height:120px;display:flex;align-items:center;justify-content:center}
+  .small{font-size:13px}
+  @media (max-width:560px){ .controls{gap:6px} .card{padding:12px} }
+</style>
 </head>
-
 <body>
+  <div class="card">
+    <h2>Simple Image Merger</h2>
+    <div class="muted small">Mudah & cepat — drag & drop beberapa gambar, atur orientasi, lalu gabungkan.</div>
 
-    <div class="container">
-        <h2>Gabung Gambar 69</h2>
-        <p>Pilih dua gambar untuk digabung:</p>
-
-        <input type="file" id="img1"><br><br>
-        <input type="file" id="img2"><br><br>
-
-        <button onclick="mergeImages()">Gabungkan</button>
-
-        <canvas id="canvas" class="preview"></canvas>
+    <div id="drop" class="drop" tabindex="0" aria-label="Area upload gambar">
+      Klik atau seret gambar ke sini (png/jpg). Max 30 file.
+      <input id="inputFiles" type="file" accept="image/*" multiple style="display:none" />
     </div>
 
-    <!-- YouTube Mini Box -->
-    <div class="yt-fixed">
-        <iframe
-            src="https://www.youtube.com/embed/dlOYH0MInXw?autoplay=1&mute=1&loop=1&playlist=dlOYH0MInXw"
-            frameborder="0"
-            allow="autoplay"
-            allowfullscreen>
-        </iframe>
+    <div id="thumbs" class="thumbs" aria-live="polite"></div>
+
+    <div class="controls">
+      <label>Orientasi
+        <select id="orient">
+          <option value="horizontal">Horizontal</option>
+          <option value="vertical">Vertical</option>
+          <option value="grid">Grid</option>
+        </select>
+      </label>
+
+      <label>Grid cols
+        <input id="gridCols" type="number" min="1" max="10" value="3" style="width:72px" />
+      </label>
+
+      <label>Padding (px)
+        <input id="pad" type="number" min="0" max="200" value="8" style="width:72px" />
+      </label>
+
+      <label>BG
+        <input id="bg" type="color" value="#ffffff" />
+      </label>
+
+      <button id="merge">Gabungkan</button>
+      <button id="download" class="ghost">Unduh</button>
+      <button id="clear" class="ghost">Bersihkan</button>
     </div>
 
-    <script>
-        function mergeImages() {
-            let img1 = document.getElementById("img1").files[0];
-            let img2 = document.getElementById("img2").files[0];
-            if (!img1 || !img2) {
-                alert("Pilih 2 gambar terlebih dahulu!");
-                return;
-            }
+    <div id="result">Belum ada hasil</div>
+  </div>
 
-            let canvas = document.getElementById("canvas");
-            let ctx = canvas.getContext("2d");
+<script>
+const drop = document.getElementById('drop');
+const input = document.getElementById('inputFiles');
+const thumbs = document.getElementById('thumbs');
+const mergeBtn = document.getElementById('merge');
+const downloadBtn = document.getElementById('download');
+const clearBtn = document.getElementById('clear');
+const result = document.getElementById('result');
 
-            let image1 = new Image();
-            let image2 = new Image();
+let files = [];
 
-            let reader1 = new FileReader();
-            let reader2 = new FileReader();
+function renderThumbs(){
+  thumbs.innerHTML='';
+  files.forEach((f,i)=>{
+    const d = document.createElement('div'); d.className='thumb';
+    const img = document.createElement('img'); img.style.maxWidth='100%'; img.style.maxHeight='100%';
+    img.src = URL.createObjectURL(f);
+    d.appendChild(img);
+    d.title = f.name;
+    thumbs.appendChild(d);
+  });
+}
 
-            reader1.onload = function (e) {
-                image1.src = e.target.result;
-            };
+drop.addEventListener('click', ()=>input.click());
+input.addEventListener('change', e=>{ addFiles(e.target.files); input.value=''; });
 
-            reader2.onload = function (e) {
-                image2.src = e.target.result;
-            };
+['dragenter','dragover'].forEach(ev=>{ drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('drag'); }); });
+['dragleave','drop'].forEach(ev=>{ drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('drag'); }); });
+drop.addEventListener('drop', e=>{ const dt = e.dataTransfer; if(dt && dt.files) addFiles(dt.files); });
 
-            image1.onload = function () {
-                image2.onload = function () {
-                    canvas.width = Math.max(image1.width, image2.width);
-                    canvas.height = image1.height + image2.height;
+function addFiles(list){
+  const arr = Array.from(list).filter(f=>f.type && f.type.startsWith('image/'));
+  const limit = 30 - files.length;
+  arr.slice(0,limit).forEach(f=>files.push(f));
+  renderThumbs();
+}
 
-                    ctx.drawImage(image1, 0, 0);
-                    ctx.drawImage(image2, 0, image1.height);
-                };
-            };
+clearBtn.addEventListener('click', ()=>{ if(confirm('Hapus semua file?')){ files=[]; renderThumbs(); result.innerHTML='Belum ada hasil'; } });
 
-            reader1.readAsDataURL(img1);
-            reader2.readAsDataURL(img2);
-        }
-    </script>
+mergeBtn.addEventListener('click', async ()=>{
+  if(files.length===0){ alert('Tambahkan gambar dulu.'); return; }
+  result.innerHTML='Membuat...';
+  const orient = document.getElementById('orient').value;
+  const pad = Number(document.getElementById('pad').value) || 0;
+  const bg = document.getElementById('bg').value || '#ffffff';
+  const gridCols = Math.max(1, Number(document.getElementById('gridCols').value) || 3);
 
+  // load images
+  const imgs = await Promise.all(files.map(f => loadImg(URL.createObjectURL(f))));
+
+  // simple resize cap to avoid huge canvases
+  const maxSide = 1600;
+  imgs.forEach(o=>{
+    const ratio = Math.max(o.width/maxSide, o.height/maxSide, 1);
+    o.drawW = Math.round(o.width/ratio);
+    o.drawH = Math.round(o.height/ratio);
+  });
+
+  let W=0,H=0;
+  if(orient==='horizontal'){
+    W = imgs.reduce((s,i)=>s + i.drawW, 0) + pad*(imgs.length-1);
+    H = Math.max(...imgs.map(i=>i.drawH));
+  } else if(orient==='vertical'){
+    H = imgs.reduce((s,i)=>s + i.drawH, 0) + pad*(imgs.length-1);
+    W = Math.max(...imgs.map(i=>i.drawW));
+  } else {
+    const cols = gridCols; const rows = Math.ceil(imgs.length/cols);
+    const colW = new Array(cols).fill(0); const rowH = new Array(rows).fill(0);
+    imgs.forEach((im,i)=>{ const c=i%cols; const r=Math.floor(i/cols); colW[c]=Math.max(colW[c], im.drawW); rowH[r]=Math.max(rowH[r], im.drawH); });
+    W = colW.reduce((a,b)=>a+b,0) + pad*(cols-1);
+    H = rowH.reduce((a,b)=>a+b,0) + pad*(rows-1);
+  }
+
+  const canvas = document.createElement('canvas'); canvas.width = Math.max(1,W); canvas.height = Math.max(1,H);
+  const ctx = canvas.getContext('2d'); ctx.fillStyle = bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  if(orient==='horizontal'){
+    let x=0; imgs.forEach(im=>{ ctx.drawImage(im.el, x, (H-im.drawH)/2, im.drawW, im.drawH); x += im.drawW + pad; });
+  } else if(orient==='vertical'){
+    let y=0; imgs.forEach(im=>{ ctx.drawImage(im.el, (W-im.drawW)/2, y, im.drawW, im.drawH); y += im.drawH + pad; });
+  } else {
+    const cols = gridCols; let idx=0; let y=0;
+    const colW = []; const rowH = [];
+    for(let c=0;c<cols;c++) colW[c] = Math.max(...imgs.filter((_,i)=>i%cols===c).map(i=>i.drawW), 0);
+    const rows = Math.ceil(imgs.length/cols);
+    for(let r=0;r<rows;r++) rowH[r] = Math.max(...imgs.slice(r*cols, r*cols+cols).map(i=>i.drawH), 0);
+    for(let r=0;r<rows;r++){
+      let x=0;
+      for(let c=0;c<cols;c++){
+        if(idx>=imgs.length) break;
+        const im = imgs[idx];
+        const cx = x + (colW[c]-im.drawW)/2;
+        const cy = y + (rowH[r]-im.drawH)/2;
+        ctx.drawImage(im.el, cx, cy, im.drawW, im.drawH);
+        x += colW[c] + pad; idx++;
+      }
+      y += rowH[r] + pad;
+    }
+  }
+
+  result.innerHTML='';
+  canvas.style.maxWidth='100%';
+  canvas.style.borderRadius='6px';
+  result.appendChild(canvas);
+});
+
+downloadBtn.addEventListener('click', ()=>{
+  const c = result.querySelector('canvas'); if(!c){ alert('Belum ada hasil.'); return; }
+  c.toBlob(b=>{ const a=document.createElement('a'); a.href = URL.createObjectURL(b); a.download='merged.png'; a.click(); URL.revokeObjectURL(a.href); });
+});
+
+function loadImg(src){
+  return new Promise((res,rej)=>{
+    const img = new Image(); img.onload = ()=>res({el:img, width:img.naturalWidth, height:img.naturalHeight});
+    img.onerror = rej; img.src = src; img.crossOrigin='anonymous';
+  });
+}
+</script>
 </body>
 </html>
